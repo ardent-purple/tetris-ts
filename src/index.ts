@@ -5,6 +5,7 @@ import {
   tetrominoes,
 } from './tetrominoes.js'
 import { Display } from './Display.js'
+import { Clock } from './Clock.js'
 
 const display = new Display(document.getElementById('root')!, {
   cellSize: 20,
@@ -13,20 +14,33 @@ const display = new Display(document.getElementById('root')!, {
 
 let tetromino = getNextTetromino()
 let rotIndex = 0
+let rotatedTetromino = tetromino[rotIndex]
 
-window.addEventListener('click', () => {
-  tetromino = getNextTetromino()
-  rotIndex = getNextTetrominoRotation(tetromino)
+const clock = new Clock()
+
+clock.addLogicCallback({
+  callback: () => {
+    tetromino = getNextTetromino()
+    rotIndex = getNextTetrominoRotation(tetromino)
+  },
+  interval: 3000,
 })
 
-setInterval(() => {
-  const tetra = tetromino[rotIndex]
-  rotIndex = getNextTetrominoRotation(tetromino, rotIndex)
+clock.addLogicCallback({
+  callback: () => {
+    rotIndex = getNextTetrominoRotation(tetromino, rotIndex)
+    rotatedTetromino = tetromino[rotIndex]
+  },
+  interval: 500,
+})
 
-  const points = tetra.map(({ x, y }) => ({
+clock.addRenderCallback(() => {
+  const points = rotatedTetromino.map(({ x, y }) => ({
     x: x + 2,
     y: y + 5,
   }))
 
   display.render(points)
-}, 400)
+})
+
+clock.start()
