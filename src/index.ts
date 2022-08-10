@@ -1,19 +1,25 @@
-import { GRID_WIDTH, GRID_HEIGHT } from './constants.js'
+import { GRID_WIDTH, GRID_HEIGHT, tetrominoes } from './constants.js'
 import { Display } from './Display.js'
 
 const display = new Display(document.getElementById('root')!, {
   cellSize: 20,
   cellGap: 3,
 })
+
+let tetraIndex = 0
+let rotIndex = 0
+window.addEventListener('click', () => {
+  tetraIndex = (tetraIndex + 1) % tetrominoes.length
+  rotIndex = 0
+})
+
 setInterval(() => {
-  const size = 100
-  const points = Array(size)
-    .fill(null)
-    .map(() => {
-      const x = Math.floor(Math.random() * GRID_WIDTH)
-      const y = Math.floor(Math.random() * GRID_HEIGHT)
-      return { x, y }
-    })
+  rotIndex = (rotIndex + 1) % tetrominoes[tetraIndex].length
+  const tetra = tetrominoes[tetraIndex][rotIndex]
+  const points = tetra.map(({ x, y }) => ({
+    x: x + 2,
+    y: y + 5,
+  }))
 
   display.render(points)
 }, 400)
