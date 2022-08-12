@@ -6,6 +6,7 @@ import {
 } from './tetrominoes.js'
 import { Display } from './Display.js'
 import { Clock } from './Clock.js'
+import { Keyboard } from './Keyboard.js'
 
 const display = new Display(document.getElementById('root')!, {
   cellHeight: 30,
@@ -46,3 +47,26 @@ clock.addRenderCallback(() => {
 })
 
 clock.start()
+
+// keyboard test
+
+const keyboard = new Keyboard()
+
+keyboard.add({
+  code: 'KeyA',
+  keydownCallback: (e) => console.log('AAAAAA'),
+})
+keyboard.add({
+  code: 'KeyW',
+  keydownCallback: (e) => console.log('WWWWWWW'),
+  isContinuousKeydown: true,
+})
+keyboard.add({
+  code: 'KeyD',
+  keyupCallback: (e) => console.log('ddddddd'),
+})
+keyboard.add({
+  code: 'KeyS',
+  keydownCallback: (e) => console.log('s down'),
+  keyupCallback: (e) => console.log('s up'),
+})
