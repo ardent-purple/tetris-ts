@@ -8,6 +8,8 @@ import { Display } from './Display.js'
 import { Clock } from './Clock.js'
 
 const display = new Display(document.getElementById('root')!, {
+  cellHeight: 30,
+  cellWidth: 20,
   cellSize: 20,
   cellGap: 3,
 })
@@ -23,7 +25,7 @@ clock.addLogicCallback({
     tetromino = getNextTetromino()
     rotIndex = getNextTetrominoRotation(tetromino)
   },
-  interval: 3000,
+  interval: 1000,
 })
 
 clock.addLogicCallback({
@@ -31,7 +33,7 @@ clock.addLogicCallback({
     rotIndex = getNextTetrominoRotation(tetromino, rotIndex)
     rotatedTetromino = tetromino[rotIndex]
   },
-  interval: 500,
+  interval: 200,
 })
 
 clock.addRenderCallback(() => {

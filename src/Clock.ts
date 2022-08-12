@@ -32,6 +32,7 @@ export class Clock {
     for (const renderCallback of this.renderCallbacks) {
       renderCallback()
     }
+
     window.requestAnimationFrame(this.render.bind(this))
   }
 

@@ -1,6 +1,8 @@
 import { GRID_HEIGHT, GRID_WIDTH } from './constants.js'
 
 interface DisplayOptions {
+  cellHeight: number
+  cellWidth: number
   cellSize: number
   cellGap: number
   emptyColor: CanvasFillStrokeStyles['fillStyle']
@@ -8,6 +10,8 @@ interface DisplayOptions {
 }
 
 const defaultOptions: DisplayOptions = {
+  cellHeight: GRID_HEIGHT,
+  cellWidth: GRID_WIDTH,
   cellSize: 15,
   cellGap: 2,
   emptyColor: 'black',
@@ -34,11 +38,11 @@ export class Display {
     container.append(this.canvas)
 
     this.canvas.width =
-      GRID_WIDTH * this.options.cellSize +
-      (GRID_WIDTH + 1) * this.options.cellGap
+      this.options.cellWidth * this.options.cellSize +
+      (this.options.cellWidth + 1) * this.options.cellGap
     this.canvas.height =
-      GRID_HEIGHT * this.options.cellSize +
-      (GRID_HEIGHT + 1) * this.options.cellGap
+      this.options.cellHeight * this.options.cellSize +
+      (this.options.cellHeight + 1) * this.options.cellGap
 
     this.ctx2d = this.canvas.getContext('2d')!
   }
