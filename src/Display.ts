@@ -1,5 +1,3 @@
-import { GRID_HEIGHT, GRID_WIDTH } from './constants.js'
-
 interface DisplayOptions {
   cellHeight: number
   cellWidth: number
@@ -10,8 +8,8 @@ interface DisplayOptions {
 }
 
 const defaultOptions: DisplayOptions = {
-  cellHeight: GRID_HEIGHT,
-  cellWidth: GRID_WIDTH,
+  cellHeight: 20,
+  cellWidth: 20,
   cellSize: 15,
   cellGap: 2,
   emptyColor: 'black',

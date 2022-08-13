@@ -224,11 +224,13 @@ const Z = [
 
 export const tetrominoes = [SQUARE, LINE, T, L, J, S, Z] as const
 
+export type Tetromino = typeof tetrominoes[number]
+
 export const getNextTetromino = () =>
   tetrominoes[Math.floor(Math.random() * tetrominoes.length)]
 
 export const getNextTetrominoRotation = (
-  tetromino: typeof tetrominoes[number],
+  tetromino: Tetromino,
   currentRot: number = -1
 ) => {
   return (currentRot + 1) % tetromino.length
