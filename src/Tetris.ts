@@ -60,11 +60,11 @@ export class Tetris {
     }
     const strafeLeftCallback = {
       callback: this.strafeTetromino.bind(this, Direction.Left),
-      interval: 100,
+      interval: 150,
     }
     const strafeRightCallback = {
       callback: this.strafeTetromino.bind(this, Direction.Right),
-      interval: 100,
+      interval: 150,
     }
 
     this.clock.addLogicCallback(mainGameLogicCallback)
@@ -156,6 +156,27 @@ export class Tetris {
       ...this.filledField,
       ...this.currentTetrominoAbsoluteCoords,
     ]
+    this.destroyFilledRows()
+  }
+
+  destroyFilledRows() {
+    const allY = Array(GRID_HEIGHT)
+      .fill(null)
+      .map((_, index) => index)
+    for (const row of allY) {
+      const filledCellsAmount = this.filledField.filter(
+        ({ y }) => y === row
+      ).length
+      if (filledCellsAmount !== GRID_WIDTH) {
+        continue
+      }
+
+      this.filledField = this.filledField
+        .filter(({ y }) => y !== row)
+        .map((coords) =>
+          coords.y > row ? coords : { ...coords, y: coords.y + 1 }
+        )
+    }
   }
 
   // game checks
