@@ -50,10 +50,9 @@ export class Clock {
     this.logicCallbacks.push(logicCallback)
   }
 
-  removeLogicCallback(logicCallback: ClockCallback) {
+  removeLogicCallback(logicCallback: ClockCallbackInterval) {
     this.logicCallbacks = this.logicCallbacks.filter(
-      (existingLogicCallback) =>
-        existingLogicCallback.callback !== logicCallback
+      (existingLogicCallback) => existingLogicCallback !== logicCallback
     )
   }
 }

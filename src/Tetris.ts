@@ -73,7 +73,7 @@ export class Tetris {
         this.clock.addLogicCallback(strafeLeftCallback)
       },
       keyupCallback: () => {
-        this.clock.removeLogicCallback(strafeLeftCallback.callback)
+        this.clock.removeLogicCallback(strafeLeftCallback)
       },
     })
     this.keyboard.add({
@@ -83,8 +83,12 @@ export class Tetris {
         this.clock.addLogicCallback(strafeRightCallback)
       },
       keyupCallback: () => {
-        this.clock.removeLogicCallback(strafeRightCallback.callback)
+        this.clock.removeLogicCallback(strafeRightCallback)
       },
+    })
+    this.keyboard.add({
+      code: 'KeyW',
+      keydownCallback: this.rotateTetromino.bind(this),
     })
 
     this.clock.start()
@@ -125,6 +129,17 @@ export class Tetris {
     }
   }
 
+  rotateTetromino() {
+    if (!this.checkCanRotateTetromino()) {
+      return
+    }
+
+    this.currentTetrominoRotation = getNextTetrominoRotation(
+      this.currentTetromino,
+      this.currentTetrominoRotation
+    )
+  }
+
   // game checks
 
   checkCanPullTetromino() {
@@ -150,6 +165,27 @@ export class Tetris {
         const maxXInTetromino = Math.max(...allTetrominoXCoords)
         return maxXInTetromino < GRID_WIDTH - 1
     }
+  }
+
+  checkCanRotateTetromino() {
+    const potentialTetrominoRotation = getNextTetrominoRotation(
+      this.currentTetromino,
+      this.currentTetrominoRotation
+    )
+    const potentialTetrominoCoords = this.currentTetromino[
+      potentialTetrominoRotation
+    ].map((coords) => ({
+      x: coords.x + this.currentTetrominoPosition.x,
+      y: coords.y + this.currentTetrominoPosition.y,
+    }))
+    const x = potentialTetrominoCoords.map(({ x }) => x)
+    const y = potentialTetrominoCoords.map(({ y }) => y)
+
+    const maxY = Math.max(...y)
+    const minX = Math.min(...x)
+    const maxX = Math.max(...x)
+
+    return maxY < GRID_HEIGHT && minX >= 0 && maxX < GRID_WIDTH
   }
 
   game() {
