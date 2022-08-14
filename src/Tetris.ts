@@ -201,7 +201,9 @@ export class Tetris {
     if (this.checkCanPullTetromino()) {
       this.pullTetromino()
     } else {
-      this.nextTetromino()
+      this.clock.timeout(() => {
+        this.nextTetromino()
+      }, 500)
     }
   }
 

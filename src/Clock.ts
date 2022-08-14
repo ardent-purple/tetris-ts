@@ -55,4 +55,11 @@ export class Clock {
       (existingLogicCallback) => existingLogicCallback !== logicCallback
     )
   }
+
+  timeout(f: ClockCallback, interval: number) {
+    const timeout = setTimeout(f, interval)
+    return () => {
+      clearTimeout(timeout)
+    }
+  }
 }
