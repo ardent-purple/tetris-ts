@@ -36,9 +36,6 @@ export class Tetris {
     this.currentTetromino
   )
 
-  private isLeftPressed: boolean = false
-  private isRightPressed: boolean = false
-
   constructor(container: HTMLElement) {
     this.display = new Display(container, {
       cellWidth: GRID_WIDTH,
@@ -50,47 +47,45 @@ export class Tetris {
 
     this.field = []
 
-    // keyboard bindings
-    this.keyboard.add({
-      code: 'KeyA',
-      keydownCallback: () => {
-        this.isLeftPressed = true
-        this.strafeTetromino.bind(this, Direction.Left)
-      },
-      keyupCallback: () => {
-        this.isLeftPressed = false
-      },
-    })
-    this.keyboard.add({
-      code: 'KeyD',
-      keydownCallback: () => {
-        this.isRightPressed = true
-        this.strafeTetromino.bind(this, Direction.Right)
-      },
-      keyupCallback: () => {
-        this.isRightPressed = false
-      },
-    })
-
-    // main game logic
     this.clock.addRenderCallback(this.render.bind(this))
 
+    // main game logic
     const mainGameLogicCallback = {
       callback: this.game.bind(this),
       interval: 250,
     }
     const strafeLeftCallback = {
       callback: this.strafeTetromino.bind(this, Direction.Left),
-      interval: 70,
+      interval: 100,
     }
     const strafeRightCallback = {
       callback: this.strafeTetromino.bind(this, Direction.Right),
-      interval: 70,
+      interval: 100,
     }
 
     this.clock.addLogicCallback(mainGameLogicCallback)
-    this.clock.addLogicCallback(strafeLeftCallback)
-    this.clock.addLogicCallback(strafeRightCallback)
+
+    // keyboard bindings
+    this.keyboard.add({
+      code: 'KeyA',
+      keydownCallback: () => {
+        this.strafeTetromino.bind(this, Direction.Left)
+        this.clock.addLogicCallback(strafeLeftCallback)
+      },
+      keyupCallback: () => {
+        this.clock.removeLogicCallback(strafeLeftCallback.callback)
+      },
+    })
+    this.keyboard.add({
+      code: 'KeyD',
+      keydownCallback: () => {
+        this.strafeTetromino.bind(this, Direction.Right)
+        this.clock.addLogicCallback(strafeRightCallback)
+      },
+      keyupCallback: () => {
+        this.clock.removeLogicCallback(strafeRightCallback.callback)
+      },
+    })
 
     this.clock.start()
   }
@@ -110,9 +105,7 @@ export class Tetris {
   }
 
   strafeTetromino(direction: Direction) {
-    const isPressed =
-      direction === Direction.Left ? this.isLeftPressed : this.isRightPressed
-    if (!this.checkCanStrafeTetromino(direction) || !isPressed) {
+    if (!this.checkCanStrafeTetromino(direction)) {
       return
     }
 
