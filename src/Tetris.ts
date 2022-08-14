@@ -16,6 +16,11 @@ interface Position {
   y: number
 }
 
+enum Direction {
+  Left = 'left',
+  Right = 'right',
+}
+
 const initialTetrominoPosition = { x: 4, y: -1 }
 
 export class Tetris {
@@ -31,38 +36,70 @@ export class Tetris {
     this.currentTetromino
   )
 
+  private isLeftPressed: boolean = false
+  private isRightPressed: boolean = false
+
   constructor(container: HTMLElement) {
     this.display = new Display(container, {
       cellWidth: GRID_WIDTH,
       cellHeight: GRID_HEIGHT,
+      cellSize: 30,
     })
     this.keyboard = new Keyboard()
     this.clock = new Clock()
 
     this.field = []
 
+    // keyboard bindings
+    this.keyboard.add({
+      code: 'KeyA',
+      keydownCallback: () => {
+        this.isLeftPressed = true
+        this.strafeTetromino.bind(this, Direction.Left)
+      },
+      keyupCallback: () => {
+        this.isLeftPressed = false
+      },
+    })
+    this.keyboard.add({
+      code: 'KeyD',
+      keydownCallback: () => {
+        this.isRightPressed = true
+        this.strafeTetromino.bind(this, Direction.Right)
+      },
+      keyupCallback: () => {
+        this.isRightPressed = false
+      },
+    })
+
+    // main game logic
     this.clock.addRenderCallback(this.render.bind(this))
-    const gameLogicCallback = {
+
+    const mainGameLogicCallback = {
       callback: this.game.bind(this),
       interval: 250,
     }
-    this.clock.addLogicCallback(gameLogicCallback)
-    this.clock.start()
+    const strafeLeftCallback = {
+      callback: this.strafeTetromino.bind(this, Direction.Left),
+      interval: 70,
+    }
+    const strafeRightCallback = {
+      callback: this.strafeTetromino.bind(this, Direction.Right),
+      interval: 70,
+    }
 
-    // test
-    this.keyboard.add({
-      code: 'KeyW',
-      keydownCallback: () => {
-        gameLogicCallback.interval += 50
-      },
-    })
-    this.keyboard.add({
-      code: 'KeyS',
-      keydownCallback: () => {
-        gameLogicCallback.interval -= 50
-      },
-    })
+    this.clock.addLogicCallback(mainGameLogicCallback)
+    this.clock.addLogicCallback(strafeLeftCallback)
+    this.clock.addLogicCallback(strafeRightCallback)
+
+    this.clock.start()
   }
+
+  get currentTetrominoCoords() {
+    return this.currentTetromino[this.currentTetrominoRotation]
+  }
+
+  // game actions
 
   nextTetromino() {
     this.currentTetrominoPosition = { x: 4, y: -1 }
@@ -72,11 +109,32 @@ export class Tetris {
     )
   }
 
-  get currentTetrominoCoords() {
-    return this.currentTetromino[this.currentTetrominoRotation]
+  strafeTetromino(direction: Direction) {
+    const isPressed =
+      direction === Direction.Left ? this.isLeftPressed : this.isRightPressed
+    if (!this.checkCanStrafeTetromino(direction) || !isPressed) {
+      return
+    }
+
+    const nextX =
+      this.currentTetrominoPosition.x + (direction === Direction.Left ? -1 : 1)
+    this.currentTetrominoPosition = {
+      ...this.currentTetrominoPosition,
+      x: nextX,
+    }
   }
 
-  checkCanMoveTetrominoDown() {
+  // pulls tetromino down
+  pullTetromino() {
+    this.currentTetrominoPosition = {
+      ...this.currentTetrominoPosition,
+      y: this.currentTetrominoPosition.y + 1,
+    }
+  }
+
+  // game checks
+
+  checkCanPullTetromino() {
     // find min y in tetromino
     const maxYInTetromino = Math.max(
       ...this.currentTetrominoCoords.map(
@@ -87,6 +145,20 @@ export class Tetris {
     return maxYInTetromino + 1 < GRID_HEIGHT
   }
 
+  checkCanStrafeTetromino(direction: Direction) {
+    const allTetrominoXCoords = this.currentTetrominoCoords.map(
+      (coords) => coords.x + this.currentTetrominoPosition.x
+    )
+    switch (direction) {
+      case Direction.Left:
+        const minXInTetromino = Math.min(...allTetrominoXCoords)
+        return minXInTetromino > 0
+      case Direction.Right:
+        const maxXInTetromino = Math.max(...allTetrominoXCoords)
+        return maxXInTetromino < GRID_WIDTH - 1
+    }
+  }
+
   game() {
     this.field = [
       ...this.currentTetrominoCoords.map((tetrominoeCoords) => ({
@@ -95,11 +167,10 @@ export class Tetris {
       })),
     ]
 
-    if (this.checkCanMoveTetrominoDown()) {
-      this.currentTetrominoPosition = {
-        ...this.currentTetrominoPosition,
-        y: this.currentTetrominoPosition.y + 1,
-      }
+    // test
+    // maybe separate pull logic?
+    if (this.checkCanPullTetromino()) {
+      this.pullTetromino()
     } else {
       this.nextTetromino()
     }
