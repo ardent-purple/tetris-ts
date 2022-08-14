@@ -1,8 +1,8 @@
+import { isThisTypeNode } from 'typescript'
 import { Clock } from './Clock.js'
 import { Display } from './Display.js'
 import { Keyboard } from './Keyboard.js'
 import {
-  tetrominoes,
   getNextTetromino,
   getNextTetrominoRotation,
   Tetromino,
@@ -28,13 +28,16 @@ export class Tetris {
   private keyboard: Keyboard
   private clock: Clock
 
-  private field: Position[]
+  private field: Position[] // current playing field, one to render
+  private filledField: Position[] // field with filled cells
 
   private currentTetromino: Tetromino = getNextTetromino()
   private currentTetrominoPosition: Position = initialTetrominoPosition
   private currentTetrominoRotation: number = getNextTetrominoRotation(
     this.currentTetromino
   )
+
+  private isLastMove: boolean = false
 
   constructor(container: HTMLElement) {
     this.display = new Display(container, {
@@ -46,6 +49,7 @@ export class Tetris {
     this.clock = new Clock()
 
     this.field = []
+    this.filledField = []
 
     this.clock.addRenderCallback(this.render.bind(this))
 
@@ -98,10 +102,17 @@ export class Tetris {
     return this.currentTetromino[this.currentTetrominoRotation]
   }
 
+  get currentTetrominoAbsoluteCoords() {
+    return this.currentTetrominoCoords.map((tetrominoeCoords) => ({
+      x: tetrominoeCoords.x + this.currentTetrominoPosition.x,
+      y: tetrominoeCoords.y + this.currentTetrominoPosition.y,
+    }))
+  }
+
   // game actions
 
   nextTetromino() {
-    this.currentTetrominoPosition = { x: 4, y: -1 }
+    this.currentTetrominoPosition = initialTetrominoPosition
     this.currentTetromino = getNextTetromino()
     this.currentTetrominoRotation = getNextTetrominoRotation(
       this.currentTetromino
@@ -140,30 +151,58 @@ export class Tetris {
     )
   }
 
+  saveTetromino() {
+    this.filledField = [
+      ...this.filledField,
+      ...this.currentTetrominoAbsoluteCoords,
+    ]
+  }
+
   // game checks
 
   checkCanPullTetromino() {
     // find min y in tetromino
-    const maxYInTetromino = Math.max(
-      ...this.currentTetrominoCoords.map(
-        (coords) => coords.y + this.currentTetrominoPosition.y
-      )
+    const potentialPullAbsoluteCoords = this.currentTetrominoAbsoluteCoords.map(
+      (coords) => ({ ...coords, y: coords.y + 1 })
     )
 
-    return maxYInTetromino + 1 < GRID_HEIGHT
+    return !potentialPullAbsoluteCoords.some(
+      ({ x, y }) =>
+        y >= GRID_HEIGHT ||
+        this.filledField.some(
+          ({ x: filledX, y: filledY }) => x === filledX && filledY === y
+        )
+    )
   }
 
   checkCanStrafeTetromino(direction: Direction) {
-    const allTetrominoXCoords = this.currentTetrominoCoords.map(
-      (coords) => coords.x + this.currentTetrominoPosition.x
-    )
     switch (direction) {
       case Direction.Left:
-        const minXInTetromino = Math.min(...allTetrominoXCoords)
-        return minXInTetromino > 0
+        const potentialStrafeLeftCoords =
+          this.currentTetrominoAbsoluteCoords.map((coords) => ({
+            ...coords,
+            x: coords.x - 1,
+          }))
+        return !potentialStrafeLeftCoords.some(
+          ({ x, y }) =>
+            x < 0 ||
+            this.filledField.some(
+              ({ x: filledX, y: filledY }) => x === filledX && filledY === y
+            )
+        )
       case Direction.Right:
-        const maxXInTetromino = Math.max(...allTetrominoXCoords)
-        return maxXInTetromino < GRID_WIDTH - 1
+        const potentialStrafeRightCoords =
+          this.currentTetrominoAbsoluteCoords.map((coords) => ({
+            ...coords,
+            x: coords.x + 1,
+          }))
+        return !potentialStrafeRightCoords.some(
+          ({ x, y }) =>
+            x >= GRID_WIDTH ||
+            this.filledField.some(
+              ({ x: filledX, y: filledY }) => x === filledX && filledY === y
+            )
+        )
     }
   }
 
@@ -189,21 +228,21 @@ export class Tetris {
   }
 
   game() {
-    this.field = [
-      ...this.currentTetrominoCoords.map((tetrominoeCoords) => ({
-        x: tetrominoeCoords.x + this.currentTetrominoPosition.x,
-        y: tetrominoeCoords.y + this.currentTetrominoPosition.y,
-      })),
-    ]
+    this.field = [...this.filledField, ...this.currentTetrominoAbsoluteCoords]
 
     // test
     // maybe separate pull logic?
     if (this.checkCanPullTetromino()) {
       this.pullTetromino()
+      return
+    }
+
+    if (!this.isLastMove) {
+      this.isLastMove = true
     } else {
-      this.clock.timeout(() => {
-        this.nextTetromino()
-      }, 500)
+      this.isLastMove = false
+      this.saveTetromino()
+      this.nextTetromino()
     }
   }
 
