@@ -4,6 +4,7 @@
   "description": "Just a simple tetris project on TypeScript for fun and learning",
   "main": "index.js",
   "scripts": {
+    "build": "tsc",
     "dev": "tsc-watch"
   },
   "keywords": [
