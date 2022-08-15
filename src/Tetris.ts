@@ -1,4 +1,4 @@
-import { isThisTypeNode } from 'typescript'
+import { getTextOfJSDocComment, isThisTypeNode } from 'typescript'
 import { Clock } from './Clock.js'
 import { Display } from './Display.js'
 import { Keyboard } from './Keyboard.js'
@@ -39,6 +39,7 @@ export class Tetris {
   )
 
   private score = 0
+  private pause = false
 
   private isLastMove: boolean = false
 
@@ -75,6 +76,9 @@ export class Tetris {
       callback: this.strafeTetromino.bind(this, Direction.Right),
       interval: 150,
     }
+    const togglePauseCallback = () => {
+      this.pause = !this.pause
+    }
 
     this.clock.addLogicCallback(mainGameLogicCallback)
 
@@ -107,6 +111,10 @@ export class Tetris {
       code: 'KeyS',
       keydownCallback: this.pullFullTetromino.bind(this),
     })
+    this.keyboard.add({
+      code: 'Space',
+      keydownCallback: togglePauseCallback,
+    })
 
     this.clock.start()
   }
@@ -133,7 +141,7 @@ export class Tetris {
   }
 
   strafeTetromino(direction: Direction) {
-    if (!this.checkCanStrafeTetromino(direction)) {
+    if (this.pause || !this.checkCanStrafeTetromino(direction)) {
       return
     }
 
@@ -154,7 +162,7 @@ export class Tetris {
   }
 
   rotateTetromino() {
-    if (!this.checkCanRotateTetromino()) {
+    if (this.pause || !this.checkCanRotateTetromino()) {
       return
     }
 
@@ -214,6 +222,10 @@ export class Tetris {
   }
 
   pullFullTetromino() {
+    if (this.pause) {
+      return
+    }
+
     while (this.checkCanPullTetromino()) {
       this.pullTetromino()
     }
@@ -289,6 +301,9 @@ export class Tetris {
   }
 
   game() {
+    if (this.pause) {
+      return
+    }
     this.field = [...this.filledField, ...this.currentTetrominoAbsoluteCoords]
 
     // test

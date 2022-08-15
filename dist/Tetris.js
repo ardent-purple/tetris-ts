@@ -21,6 +21,7 @@ export class Tetris {
     currentTetrominoPosition = initialTetrominoPosition;
     currentTetrominoRotation = getNextTetrominoRotation(this.currentTetromino);
     score = 0;
+    pause = false;
     isLastMove = false;
     constructor(container) {
         // score system
@@ -50,6 +51,9 @@ export class Tetris {
         const strafeRightCallback = {
             callback: this.strafeTetromino.bind(this, Direction.Right),
             interval: 150,
+        };
+        const togglePauseCallback = () => {
+            this.pause = !this.pause;
         };
         this.clock.addLogicCallback(mainGameLogicCallback);
         // keyboard bindings
@@ -81,6 +85,10 @@ export class Tetris {
             code: 'KeyS',
             keydownCallback: this.pullFullTetromino.bind(this),
         });
+        this.keyboard.add({
+            code: 'Space',
+            keydownCallback: togglePauseCallback,
+        });
         this.clock.start();
     }
     get currentTetrominoCoords() {
@@ -99,7 +107,7 @@ export class Tetris {
         this.currentTetrominoRotation = getNextTetrominoRotation(this.currentTetromino);
     }
     strafeTetromino(direction) {
-        if (!this.checkCanStrafeTetromino(direction)) {
+        if (this.pause || !this.checkCanStrafeTetromino(direction)) {
             return;
         }
         const nextX = this.currentTetrominoPosition.x + (direction === Direction.Left ? -1 : 1);
@@ -116,7 +124,7 @@ export class Tetris {
         };
     }
     rotateTetromino() {
-        if (!this.checkCanRotateTetromino()) {
+        if (this.pause || !this.checkCanRotateTetromino()) {
             return;
         }
         this.currentTetrominoRotation = getNextTetrominoRotation(this.currentTetromino, this.currentTetrominoRotation);
@@ -160,6 +168,9 @@ export class Tetris {
         }
     }
     pullFullTetromino() {
+        if (this.pause) {
+            return;
+        }
         while (this.checkCanPullTetromino()) {
             this.pullTetromino();
         }
@@ -203,6 +214,9 @@ export class Tetris {
         return maxY < GRID_HEIGHT && minX >= 0 && maxX < GRID_WIDTH;
     }
     game() {
+        if (this.pause) {
+            return;
+        }
         this.field = [...this.filledField, ...this.currentTetrominoAbsoluteCoords];
         // test
         // maybe separate pull logic?
