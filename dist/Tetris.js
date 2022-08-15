@@ -11,6 +11,7 @@ var Direction;
 })(Direction || (Direction = {}));
 const initialTetrominoPosition = { x: 4, y: -1 };
 export class Tetris {
+    scoreContainer;
     display;
     keyboard;
     clock;
@@ -19,8 +20,13 @@ export class Tetris {
     currentTetromino = getNextTetromino();
     currentTetrominoPosition = initialTetrominoPosition;
     currentTetrominoRotation = getNextTetrominoRotation(this.currentTetromino);
+    score = 0;
     isLastMove = false;
     constructor(container) {
+        // score system
+        this.scoreContainer = document.createElement('p');
+        container.append(this.scoreContainer);
+        this.renderScore();
         this.display = new Display(container, {
             cellWidth: GRID_WIDTH,
             cellHeight: GRID_HEIGHT,
@@ -119,20 +125,37 @@ export class Tetris {
             ...this.filledField,
             ...this.currentTetrominoAbsoluteCoords,
         ];
-        this.destroyFilledRows();
     }
     destroyFilledRows() {
         const allY = Array(GRID_HEIGHT)
             .fill(null)
             .map((_, index) => index);
+        let destroyedRows = 0;
         for (const row of allY) {
             const filledCellsAmount = this.filledField.filter(({ y }) => y === row).length;
             if (filledCellsAmount !== GRID_WIDTH) {
                 continue;
             }
+            destroyedRows++;
             this.filledField = this.filledField
                 .filter(({ y }) => y !== row)
                 .map((coords) => coords.y > row ? coords : { ...coords, y: coords.y + 1 });
+        }
+        this.addScore(destroyedRows);
+    }
+    addScore(destroyedRows) {
+        switch (destroyedRows) {
+            case 1:
+                this.score += 40;
+                break;
+            case 2:
+                this.score += 100;
+                break;
+            case 3:
+                this.score += 300;
+                break;
+            case 4:
+                this.score += 1200;
         }
     }
     pullFullTetromino() {
@@ -192,10 +215,15 @@ export class Tetris {
         else {
             this.isLastMove = false;
             this.saveTetromino();
+            this.destroyFilledRows();
+            this.renderScore();
             this.nextTetromino();
         }
     }
     render() {
         this.display.render(this.field);
+    }
+    renderScore() {
+        this.scoreContainer.textContent = this.score.toString();
     }
 }
