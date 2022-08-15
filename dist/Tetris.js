@@ -70,6 +70,10 @@ export class Tetris {
             code: 'KeyW',
             keydownCallback: this.rotateTetromino.bind(this),
         });
+        this.keyboard.add({
+            code: 'KeyS',
+            keydownCallback: this.pullFullTetromino.bind(this),
+        });
         this.clock.start();
     }
     get currentTetrominoCoords() {
@@ -129,6 +133,11 @@ export class Tetris {
             this.filledField = this.filledField
                 .filter(({ y }) => y !== row)
                 .map((coords) => coords.y > row ? coords : { ...coords, y: coords.y + 1 });
+        }
+    }
+    pullFullTetromino() {
+        while (this.checkCanPullTetromino()) {
+            this.pullTetromino();
         }
     }
     // game checks

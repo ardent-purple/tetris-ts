@@ -94,6 +94,10 @@ export class Tetris {
       code: 'KeyW',
       keydownCallback: this.rotateTetromino.bind(this),
     })
+    this.keyboard.add({
+      code: 'KeyS',
+      keydownCallback: this.pullFullTetromino.bind(this),
+    })
 
     this.clock.start()
   }
@@ -176,6 +180,12 @@ export class Tetris {
         .map((coords) =>
           coords.y > row ? coords : { ...coords, y: coords.y + 1 }
         )
+    }
+  }
+
+  pullFullTetromino() {
+    while (this.checkCanPullTetromino()) {
+      this.pullTetromino()
     }
   }
 
