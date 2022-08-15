@@ -25,6 +25,7 @@ export class Tetris {
     constructor(container) {
         // score system
         this.scoreContainer = document.createElement('p');
+        this.scoreContainer.id = 'score';
         container.append(this.scoreContainer);
         this.renderScore();
         this.display = new Display(container, {
