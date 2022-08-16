@@ -297,7 +297,17 @@ export class Tetris {
     const minX = Math.min(...x)
     const maxX = Math.max(...x)
 
-    return maxY < GRID_HEIGHT && minX >= 0 && maxX < GRID_WIDTH
+    return (
+      maxY < GRID_HEIGHT &&
+      minX >= 0 &&
+      maxX < GRID_WIDTH &&
+      potentialTetrominoCoords.every(
+        ({ x, y }) =>
+          !this.filledField.some(
+            ({ x: filledX, y: filledY }) => filledX === x && filledY === y
+          )
+      )
+    )
   }
 
   game() {
