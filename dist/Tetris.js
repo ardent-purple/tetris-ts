@@ -1,6 +1,7 @@
 import { Clock } from './Clock.js';
 import { Display } from './Display.js';
 import { Keyboard } from './Keyboard.js';
+import { Options } from './Options.js';
 import { getNextTetromino, getNextTetrominoRotation, } from './tetrominoes.js';
 const GRID_WIDTH = 10; // cell count horizontal
 const GRID_HEIGHT = 20; // cell count vertical
@@ -22,6 +23,7 @@ export class Tetris {
     currentTetrominoRotation = getNextTetrominoRotation(this.currentTetromino);
     score = 0;
     pause = false;
+    options;
     isLastMove = false;
     constructor(container) {
         // score system
@@ -38,6 +40,7 @@ export class Tetris {
         this.clock = new Clock();
         this.field = [];
         this.filledField = [];
+        this.options = new Options(this);
         this.clock.addRenderCallback(this.render.bind(this));
         // main game logic
         const mainGameLogicCallback = {
@@ -54,6 +57,7 @@ export class Tetris {
         };
         const togglePauseCallback = () => {
             this.pause = !this.pause;
+            this.options.toggle();
         };
         this.clock.addLogicCallback(mainGameLogicCallback);
         // keyboard bindings
@@ -174,6 +178,16 @@ export class Tetris {
         while (this.checkCanPullTetromino()) {
             this.pullTetromino();
         }
+    }
+    restart() {
+        this.score = 0;
+        this.renderScore();
+        this.#cleanField();
+        this.nextTetromino();
+    }
+    #cleanField() {
+        this.filledField = [];
+        this.field = [];
     }
     // game checks
     checkCanPullTetromino() {

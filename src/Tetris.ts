@@ -1,7 +1,7 @@
-import { getTextOfJSDocComment, isThisTypeNode } from 'typescript'
 import { Clock } from './Clock.js'
 import { Display } from './Display.js'
 import { Keyboard } from './Keyboard.js'
+import { Options } from './Options.js'
 import {
   getNextTetromino,
   getNextTetrominoRotation,
@@ -41,6 +41,8 @@ export class Tetris {
   private score = 0
   private pause = false
 
+  private options: Options
+
   private isLastMove: boolean = false
 
   constructor(container: HTMLElement) {
@@ -61,6 +63,8 @@ export class Tetris {
     this.field = []
     this.filledField = []
 
+    this.options = new Options(this)
+
     this.clock.addRenderCallback(this.render.bind(this))
 
     // main game logic
@@ -78,6 +82,7 @@ export class Tetris {
     }
     const togglePauseCallback = () => {
       this.pause = !this.pause
+      this.options.toggle()
     }
 
     this.clock.addLogicCallback(mainGameLogicCallback)
@@ -229,6 +234,18 @@ export class Tetris {
     while (this.checkCanPullTetromino()) {
       this.pullTetromino()
     }
+  }
+
+  restart() {
+    this.score = 0
+    this.renderScore()
+    this.#cleanField()
+    this.nextTetromino()
+  }
+
+  #cleanField() {
+    this.filledField = []
+    this.field = []
   }
 
   // game checks
