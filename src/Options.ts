@@ -4,6 +4,7 @@ export class Options {
   // HTML
   private wrapper: HTMLElement
   private restartButton: HTMLElement
+  private colorControlCheckbox: HTMLInputElement
 
   private game: Tetris
 
@@ -16,6 +17,15 @@ export class Options {
     this.restartButton.addEventListener('click', () => {
       this.game.restart()
     })
+
+    this.colorControlCheckbox = this.wrapper.querySelector('.color-control')!
+    this.colorControlCheckbox.addEventListener('change', () => {
+      const checked = this.colorControlCheckbox.checked
+      console.log(checked)
+
+      this.game.switchColor(checked)
+    })
+    console.log(this.colorControlCheckbox)
   }
 
   toggle() {

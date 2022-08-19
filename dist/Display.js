@@ -4,7 +4,23 @@ const defaultOptions = {
     cellSize: 15,
     cellGap: 2,
     emptyColor: 'black',
-    filledColor: 'white',
+};
+const colors = {
+    Yellow: 'yellow',
+    Magenta: 'magenta',
+    Cian: '#00fff7',
+    Lightgreen: 'lightgreen',
+    Orange: 'orange',
+    White: 'white',
+};
+let prevRandomColor;
+export const getNextRandomColor = () => {
+    const colorKeys = Object.keys(colors);
+    let index;
+    do {
+        index = Math.floor(Math.random() * colorKeys.length);
+    } while (prevRandomColor === colorKeys[index]);
+    return (prevRandomColor = colorKeys[index]);
 };
 export class Display {
     canvas;
@@ -29,8 +45,8 @@ export class Display {
         // clear the screen
         this.clear();
         // fill the dots
-        this.ctx2d.fillStyle = this.options.filledColor;
-        for (const { x, y } of points) {
+        for (const { x, y, color } of points) {
+            this.ctx2d.fillStyle = color ? colors[color] : colors.White;
             this.ctx2d.fillRect((1 + x) * this.options.cellGap + x * this.options.cellSize, (1 + y) * this.options.cellGap + y * this.options.cellSize, this.options.cellSize, this.options.cellSize);
         }
     }

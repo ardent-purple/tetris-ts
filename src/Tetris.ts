@@ -1,5 +1,5 @@
 import { Clock } from './Clock.js'
-import { Display } from './Display.js'
+import { Color, Display, getNextRandomColor, RenderPoint } from './Display.js'
 import { Keyboard } from './Keyboard.js'
 import { Options } from './Options.js'
 import {
@@ -11,15 +11,12 @@ import {
 const GRID_WIDTH = 10 // cell count horizontal
 const GRID_HEIGHT = 20 // cell count vertical
 
-interface Position {
-  x: number
-  y: number
-}
-
 enum Direction {
   Left = 'left',
   Right = 'right',
 }
+
+const DEFAULT_COLOR = 'White'
 
 const initialTetrominoPosition = { x: 4, y: -1 }
 
@@ -29,19 +26,22 @@ export class Tetris {
   private keyboard: Keyboard
   private clock: Clock
 
-  private field: Position[] // current playing field, one to render
-  private filledField: Position[] // field with filled cells
+  private field: RenderPoint[] // current playing field, one to render
+  private filledField: RenderPoint[] // field with filled cells
 
   private currentTetromino: Tetromino = getNextTetromino()
-  private currentTetrominoPosition: Position = initialTetrominoPosition
+  private currentTetrominoPosition: RenderPoint = initialTetrominoPosition
   private currentTetrominoRotation: number = getNextTetrominoRotation(
     this.currentTetromino
   )
+  private currentColor: Color = getNextRandomColor()
 
   private score = 0
-  private pause = false
 
+  // options
+  private pause = false
   private options: Options
+  private colorOn: boolean = true
 
   private isLastMove: boolean = false
 
@@ -140,6 +140,7 @@ export class Tetris {
   nextTetromino() {
     this.currentTetrominoPosition = initialTetrominoPosition
     this.currentTetromino = getNextTetromino()
+    this.currentColor = this.colorOn ? getNextRandomColor() : DEFAULT_COLOR
     this.currentTetrominoRotation = getNextTetrominoRotation(
       this.currentTetromino
     )
@@ -180,7 +181,10 @@ export class Tetris {
   saveTetromino() {
     this.filledField = [
       ...this.filledField,
-      ...this.currentTetrominoAbsoluteCoords,
+      ...this.currentTetrominoAbsoluteCoords.map((coords) => ({
+        ...coords,
+        color: this.currentColor,
+      })),
     ]
   }
 
@@ -236,6 +240,8 @@ export class Tetris {
     }
   }
 
+  // control options logic
+
   restart() {
     this.score = 0
     this.renderScore()
@@ -246,6 +252,23 @@ export class Tetris {
   #cleanField() {
     this.filledField = []
     this.field = []
+  }
+
+  switchColor(isColorOn: boolean) {
+    this.colorOn = isColorOn
+    if (isColorOn) {
+      this.currentColor = getNextRandomColor()
+      this.filledField = this.filledField.map((coords) => ({
+        ...coords,
+        color: getNextRandomColor(),
+      }))
+    } else {
+      this.currentColor = DEFAULT_COLOR
+      this.filledField = this.filledField.map((coords) => ({
+        ...coords,
+        color: DEFAULT_COLOR,
+      }))
+    }
   }
 
   // game checks
@@ -331,11 +354,18 @@ export class Tetris {
     if (this.pause) {
       return
     }
-    this.field = [...this.filledField, ...this.currentTetrominoAbsoluteCoords]
+    this.field = [
+      ...this.filledField,
+      ...this.currentTetrominoAbsoluteCoords.map((coords) => ({
+        ...coords,
+        color: this.currentColor,
+      })),
+    ]
 
     // test
     // maybe separate pull logic?
     if (this.checkCanPullTetromino()) {
+      this.isLastMove = false
       this.pullTetromino()
       return
     }

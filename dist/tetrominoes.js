@@ -214,7 +214,9 @@ const Z = [
     ],
 ];
 export const tetrominoes = [SQUARE, LINE, T, L, J, S, Z];
-export const getNextTetromino = () => tetrominoes[Math.floor(Math.random() * tetrominoes.length)];
+export const getNextTetromino = () => [
+    ...tetrominoes[Math.floor(Math.random() * tetrominoes.length)],
+];
 export const getNextTetrominoRotation = (tetromino, currentRot = -1) => {
     return (currentRot + 1) % tetromino.length;
 };

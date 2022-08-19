@@ -4,7 +4,6 @@ interface DisplayOptions {
   cellSize: number
   cellGap: number
   emptyColor: CanvasFillStrokeStyles['fillStyle']
-  filledColor: CanvasFillStrokeStyles['fillStyle']
 }
 
 const defaultOptions: DisplayOptions = {
@@ -13,12 +12,33 @@ const defaultOptions: DisplayOptions = {
   cellSize: 15,
   cellGap: 2,
   emptyColor: 'black',
-  filledColor: 'white',
 }
 
-interface RenderPoint {
+const colors = {
+  Yellow: 'yellow',
+  Magenta: 'magenta',
+  Cian: '#00fff7',
+  Lightgreen: 'lightgreen',
+  Orange: 'orange',
+  White: 'white',
+}
+
+export type Color = keyof typeof colors
+
+let prevRandomColor: Color
+export const getNextRandomColor = (): Color => {
+  const colorKeys = Object.keys(colors) as Color[]
+  let index
+  do {
+    index = Math.floor(Math.random() * colorKeys.length)
+  } while (prevRandomColor === colorKeys[index])
+  return (prevRandomColor = colorKeys[index])
+}
+
+export interface RenderPoint {
   x: number
   y: number
+  color?: Color
 }
 
 export class Display {
@@ -50,8 +70,8 @@ export class Display {
     this.clear()
 
     // fill the dots
-    this.ctx2d.fillStyle = this.options.filledColor
-    for (const { x, y } of points) {
+    for (const { x, y, color } of points) {
+      this.ctx2d.fillStyle = color ? colors[color] : colors.White
       this.ctx2d.fillRect(
         (1 + x) * this.options.cellGap + x * this.options.cellSize,
         (1 + y) * this.options.cellGap + y * this.options.cellSize,

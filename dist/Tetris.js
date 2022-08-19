@@ -1,5 +1,5 @@
 import { Clock } from './Clock.js';
-import { Display } from './Display.js';
+import { Display, getNextRandomColor } from './Display.js';
 import { Keyboard } from './Keyboard.js';
 import { Options } from './Options.js';
 import { getNextTetromino, getNextTetrominoRotation, } from './tetrominoes.js';
@@ -10,6 +10,7 @@ var Direction;
     Direction["Left"] = "left";
     Direction["Right"] = "right";
 })(Direction || (Direction = {}));
+const DEFAULT_COLOR = 'White';
 const initialTetrominoPosition = { x: 4, y: -1 };
 export class Tetris {
     scoreContainer;
@@ -21,9 +22,12 @@ export class Tetris {
     currentTetromino = getNextTetromino();
     currentTetrominoPosition = initialTetrominoPosition;
     currentTetrominoRotation = getNextTetrominoRotation(this.currentTetromino);
+    currentColor = getNextRandomColor();
     score = 0;
+    // options
     pause = false;
     options;
+    colorOn = true;
     isLastMove = false;
     constructor(container) {
         // score system
@@ -108,6 +112,7 @@ export class Tetris {
     nextTetromino() {
         this.currentTetrominoPosition = initialTetrominoPosition;
         this.currentTetromino = getNextTetromino();
+        this.currentColor = this.colorOn ? getNextRandomColor() : DEFAULT_COLOR;
         this.currentTetrominoRotation = getNextTetrominoRotation(this.currentTetromino);
     }
     strafeTetromino(direction) {
@@ -136,7 +141,10 @@ export class Tetris {
     saveTetromino() {
         this.filledField = [
             ...this.filledField,
-            ...this.currentTetrominoAbsoluteCoords,
+            ...this.currentTetrominoAbsoluteCoords.map((coords) => ({
+                ...coords,
+                color: this.currentColor,
+            })),
         ];
     }
     destroyFilledRows() {
@@ -179,6 +187,7 @@ export class Tetris {
             this.pullTetromino();
         }
     }
+    // control options logic
     restart() {
         this.score = 0;
         this.renderScore();
@@ -188,6 +197,23 @@ export class Tetris {
     #cleanField() {
         this.filledField = [];
         this.field = [];
+    }
+    switchColor(isColorOn) {
+        this.colorOn = isColorOn;
+        if (isColorOn) {
+            this.currentColor = getNextRandomColor();
+            this.filledField = this.filledField.map((coords) => ({
+                ...coords,
+                color: getNextRandomColor(),
+            }));
+        }
+        else {
+            this.currentColor = DEFAULT_COLOR;
+            this.filledField = this.filledField.map((coords) => ({
+                ...coords,
+                color: DEFAULT_COLOR,
+            }));
+        }
     }
     // game checks
     checkCanPullTetromino() {
@@ -234,10 +260,17 @@ export class Tetris {
         if (this.pause) {
             return;
         }
-        this.field = [...this.filledField, ...this.currentTetrominoAbsoluteCoords];
+        this.field = [
+            ...this.filledField,
+            ...this.currentTetrominoAbsoluteCoords.map((coords) => ({
+                ...coords,
+                color: this.currentColor,
+            })),
+        ];
         // test
         // maybe separate pull logic?
         if (this.checkCanPullTetromino()) {
+            this.isLastMove = false;
             this.pullTetromino();
             return;
         }
