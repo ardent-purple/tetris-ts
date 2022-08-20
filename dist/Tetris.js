@@ -11,6 +11,7 @@ var Direction;
     Direction["Right"] = "right";
 })(Direction || (Direction = {}));
 const DEFAULT_COLOR = 'White';
+const RANDOM_FILL_COUNT = 5;
 const initialTetrominoPosition = { x: 4, y: -1 };
 export class Tetris {
     scoreContainer;
@@ -28,6 +29,7 @@ export class Tetris {
     pause = false;
     options;
     colorOn = true;
+    _difficulty = 0;
     isLastMove = false;
     constructor(container) {
         // score system
@@ -97,6 +99,7 @@ export class Tetris {
             code: 'Space',
             keydownCallback: togglePauseCallback,
         });
+        this.restart();
         this.clock.start();
     }
     get currentTetrominoCoords() {
@@ -107,6 +110,10 @@ export class Tetris {
             x: tetrominoeCoords.x + this.currentTetrominoPosition.x,
             y: tetrominoeCoords.y + this.currentTetrominoPosition.y,
         }));
+    }
+    set difficulty(value) {
+        const isValidValue = !isNaN(value) && value >= 0 && value <= 10;
+        this._difficulty = isValidValue ? value : 0;
     }
     // game actions
     nextTetromino() {
@@ -192,11 +199,47 @@ export class Tetris {
         this.score = 0;
         this.renderScore();
         this.#cleanField();
+        this.#fillField();
         this.nextTetromino();
     }
     #cleanField() {
         this.filledField = [];
         this.field = [];
+    }
+    #fillField() {
+        for (let i = 0; i < this._difficulty; i++) {
+            this.#fillRow(GRID_HEIGHT - 1 - i);
+        }
+    }
+    #fillRow(row) {
+        const generated = Array(GRID_WIDTH).fill(false);
+        let filledAmount = 0;
+        let current = -1;
+        let filledStreak = 0;
+        while (filledAmount < RANDOM_FILL_COUNT) {
+            current = (current + 1) % GRID_WIDTH;
+            if (generated[current]) {
+                continue;
+            }
+            const fillingHere = filledStreak < 2 && Math.random() > 0.5;
+            if (fillingHere) {
+                generated[current] = true;
+                filledStreak++;
+                filledAmount++;
+            }
+            else {
+                filledStreak = 0;
+            }
+        }
+        const filtered = generated
+            .map((e, i) => [e, i])
+            .filter(([e]) => e)
+            .map(([, i]) => i);
+        this.filledField = this.filledField.concat(filtered.map((x) => ({
+            x,
+            y: row,
+            color: getNextRandomColor(),
+        })));
     }
     switchColor(isColorOn) {
         this.colorOn = isColorOn;

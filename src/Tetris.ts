@@ -7,6 +7,7 @@ import {
   getNextTetrominoRotation,
   Tetromino,
 } from './tetrominoes.js'
+import { scrambleArray } from './utils.js'
 
 const GRID_WIDTH = 10 // cell count horizontal
 const GRID_HEIGHT = 20 // cell count vertical
@@ -17,6 +18,7 @@ enum Direction {
 }
 
 const DEFAULT_COLOR = 'White'
+const RANDOM_FILL_COUNT = 5
 
 const initialTetrominoPosition = { x: 4, y: -1 }
 
@@ -42,6 +44,7 @@ export class Tetris {
   private pause = false
   private options: Options
   private colorOn: boolean = true
+  private _difficulty: number = 0
 
   private isLastMove: boolean = false
 
@@ -121,6 +124,7 @@ export class Tetris {
       keydownCallback: togglePauseCallback,
     })
 
+    this.restart()
     this.clock.start()
   }
 
@@ -133,6 +137,11 @@ export class Tetris {
       x: tetrominoeCoords.x + this.currentTetrominoPosition.x,
       y: tetrominoeCoords.y + this.currentTetrominoPosition.y,
     }))
+  }
+
+  set difficulty(value: number) {
+    const isValidValue = !isNaN(value) && value >= 0 && value <= 10
+    this._difficulty = isValidValue ? value : 0
   }
 
   // game actions
@@ -246,12 +255,55 @@ export class Tetris {
     this.score = 0
     this.renderScore()
     this.#cleanField()
+    this.#fillField()
     this.nextTetromino()
   }
 
   #cleanField() {
     this.filledField = []
     this.field = []
+  }
+
+  #fillField() {
+    for (let i = 0; i < this._difficulty; i++) {
+      this.#fillRow(GRID_HEIGHT - 1 - i)
+    }
+  }
+
+  #fillRow(row: number) {
+    const generated: boolean[] = Array(GRID_WIDTH).fill(false)
+
+    let filledAmount = 0
+    let current = -1
+    let filledStreak = 0
+    while (filledAmount < RANDOM_FILL_COUNT) {
+      current = (current + 1) % GRID_WIDTH
+
+      if (generated[current]) {
+        continue
+      }
+      const fillingHere = filledStreak < 2 && Math.random() > 0.5
+      if (fillingHere) {
+        generated[current] = true
+        filledStreak++
+        filledAmount++
+      } else {
+        filledStreak = 0
+      }
+    }
+
+    const filtered = generated
+      .map((e, i) => [e, i])
+      .filter(([e]) => e)
+      .map(([, i]) => i as number)
+
+    this.filledField = this.filledField.concat(
+      filtered.map((x: number) => ({
+        x,
+        y: row,
+        color: getNextRandomColor(),
+      }))
+    )
   }
 
   switchColor(isColorOn: boolean) {

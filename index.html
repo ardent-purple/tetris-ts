@@ -13,9 +13,23 @@
       <div class="options">
         <h1>Main menu</h1>
         <button class="restart">Restart</button>
-        <label
-          >Enable color: <input type="checkbox" class="color-control" checked
-        /></label>
+        <div>
+          <label
+            >Enable color: <input type="checkbox" class="color-control" checked
+          /></label>
+        </div>
+        <div>
+          <label for="">
+            Starting difficulty:
+            <input
+              class="difficulty-number"
+              type="number"
+              min="0"
+              max="10"
+              step="1"
+            />
+          </label>
+        </div>
       </div>
     </div>
     <script src="./dist/index.js?v=3" defer type="module"></script>

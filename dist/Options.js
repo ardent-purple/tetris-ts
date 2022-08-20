@@ -3,6 +3,7 @@ export class Options {
     wrapper;
     restartButton;
     colorControlCheckbox;
+    difficultyNumberInput;
     game;
     constructor(game) {
         this.game = game;
@@ -14,10 +15,14 @@ export class Options {
         this.colorControlCheckbox = this.wrapper.querySelector('.color-control');
         this.colorControlCheckbox.addEventListener('change', () => {
             const checked = this.colorControlCheckbox.checked;
-            console.log(checked);
             this.game.switchColor(checked);
         });
-        console.log(this.colorControlCheckbox);
+        this.difficultyNumberInput =
+            this.wrapper.querySelector('.difficulty-number');
+        this.difficultyNumberInput.addEventListener('change', () => {
+            const value = Number(this.difficultyNumberInput.value);
+            this.game.difficulty = value;
+        });
     }
     toggle() {
         this.wrapper.classList.toggle('show');
