@@ -12,23 +12,31 @@ const TIME_START = 300; // starting time to drop one block below
 const TIME_END = 150;
 const TIME_MOD_COEFF = 0.95;
 const TIME_MOD_FREQ = 300000;
+const INITIAL_TETROMINO_POSITION = { x: 4, y: -1 };
+// next tetromino display
+const NEXT_TETROMINO_POSITION = { x: 2, y: 2 };
+const NEXT_TETROMINO_CELL_SIZE = 12;
+const NEXT_TETROMINO_CELL_GAP = 1;
+const NEXT_TETROMINO_CELLS = { x: 6, y: 5 };
 var Direction;
 (function (Direction) {
     Direction["Left"] = "left";
     Direction["Right"] = "right";
 })(Direction || (Direction = {}));
-const initialTetrominoPosition = { x: 4, y: -1 };
 export class Tetris {
     scoreContainer;
     display;
+    nextBlockDisplay;
     keyboard;
     clock;
     field; // current playing field, one to render
     filledField; // field with filled cells
     currentTetromino = getNextTetromino();
-    currentTetrominoPosition = initialTetrominoPosition;
+    currentTetrominoPosition = INITIAL_TETROMINO_POSITION;
     currentTetrominoRotation = getNextTetrominoRotation(this.currentTetromino);
     currentColor = getNextRandomColor();
+    nextTetromino = getNextTetromino();
+    nextColor = getNextRandomColor();
     score = 0;
     // options
     pause = false;
@@ -39,14 +47,18 @@ export class Tetris {
     isLastMove = false;
     constructor(container) {
         // score system
-        this.scoreContainer = document.createElement('p');
-        this.scoreContainer.id = 'score';
-        container.append(this.scoreContainer);
+        this.scoreContainer = document.querySelector('p#score');
         this.renderScore();
         this.display = new Display(container, {
             cellWidth: GRID_WIDTH,
             cellHeight: GRID_HEIGHT,
             cellSize: 30,
+        });
+        this.nextBlockDisplay = new Display(document.querySelector('.next-tetromino'), {
+            cellHeight: NEXT_TETROMINO_CELLS.y,
+            cellWidth: NEXT_TETROMINO_CELLS.x,
+            cellGap: NEXT_TETROMINO_CELL_GAP,
+            cellSize: NEXT_TETROMINO_CELL_SIZE,
         });
         this.keyboard = new Keyboard();
         this.clock = new Clock();
@@ -135,10 +147,12 @@ export class Tetris {
         this._difficulty = isValidValue ? value : 0;
     }
     // game actions
-    nextTetromino() {
-        this.currentTetrominoPosition = initialTetrominoPosition;
-        this.currentTetromino = getNextTetromino();
-        this.currentColor = this.isColorOn ? getNextRandomColor() : DEFAULT_COLOR;
+    generateNextTetromino() {
+        this.currentTetrominoPosition = INITIAL_TETROMINO_POSITION;
+        this.currentTetromino = this.nextTetromino;
+        this.currentColor = this.nextColor;
+        this.nextTetromino = getNextTetromino();
+        this.nextColor = this.isColorOn ? getNextRandomColor() : DEFAULT_COLOR;
         this.currentTetrominoRotation = getNextTetrominoRotation(this.currentTetromino);
     }
     strafeTetromino(direction) {
@@ -219,7 +233,7 @@ export class Tetris {
         this.renderScore();
         this.#cleanField();
         this.#fillField();
-        this.nextTetromino();
+        this.generateNextTetromino();
     }
     #cleanField() {
         this.filledField = [];
@@ -344,11 +358,16 @@ export class Tetris {
             this.saveTetromino();
             this.destroyFilledRows();
             this.renderScore();
-            this.nextTetromino();
+            this.generateNextTetromino();
         }
     }
     render() {
         this.display.render(this.field);
+        this.nextBlockDisplay.render(this.nextTetromino[0].map(({ x, y }) => ({
+            x: x + NEXT_TETROMINO_POSITION.x,
+            y: y + NEXT_TETROMINO_POSITION.y,
+            color: this.nextColor,
+        })));
     }
     renderScore() {
         this.scoreContainer.textContent = this.score.toString();
