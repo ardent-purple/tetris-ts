@@ -5,6 +5,7 @@ export class Options {
   private wrapper: HTMLElement
   private restartButton: HTMLElement
   private colorControlCheckbox: HTMLInputElement
+  private speedControlCheckbox: HTMLInputElement
   private difficultyNumberInput: HTMLInputElement
 
   private game: Tetris
@@ -23,6 +24,11 @@ export class Options {
     this.colorControlCheckbox.addEventListener('change', () => {
       const checked = this.colorControlCheckbox.checked
       this.game.switchColor(checked)
+    })
+
+    this.speedControlCheckbox = this.wrapper.querySelector('.speed-control')!
+    this.speedControlCheckbox.addEventListener('change', () => {
+      this.game.isSpeedChanging = this.speedControlCheckbox.checked
     })
 
     this.difficultyNumberInput =

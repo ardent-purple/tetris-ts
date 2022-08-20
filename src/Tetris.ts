@@ -12,13 +12,20 @@ import { scrambleArray } from './utils.js'
 const GRID_WIDTH = 10 // cell count horizontal
 const GRID_HEIGHT = 20 // cell count vertical
 
+const DEFAULT_COLOR = 'White'
+
+const RANDOM_FILL_COUNT = 5
+
+// game speed settings
+const TIME_START = 300 // starting time to drop one block below
+const TIME_END = 150
+const TIME_MOD_COEFF = 0.95
+const TIME_MOD_FREQ = 300000
+
 enum Direction {
   Left = 'left',
   Right = 'right',
 }
-
-const DEFAULT_COLOR = 'White'
-const RANDOM_FILL_COUNT = 5
 
 const initialTetrominoPosition = { x: 4, y: -1 }
 
@@ -43,8 +50,9 @@ export class Tetris {
   // options
   private pause = false
   private options: Options
-  private colorOn: boolean = true
+  private isColorOn: boolean = true
   private _difficulty: number = 0
+  public isSpeedChanging: boolean = false
 
   private isLastMove: boolean = false
 
@@ -73,8 +81,24 @@ export class Tetris {
     // main game logic
     const mainGameLogicCallback = {
       callback: this.game.bind(this),
-      interval: 250,
+      interval: Math.floor(TIME_START / TIME_MOD_COEFF), // to compensate initial call
     }
+    // speed
+    const changeSpeedCallback = {
+      callback: () => {
+        if (!this.isSpeedChanging) {
+          mainGameLogicCallback.interval = TIME_START
+          return
+        }
+        const newTime = Math.floor(
+          mainGameLogicCallback.interval * TIME_MOD_COEFF
+        )
+
+        mainGameLogicCallback.interval = Math.max(newTime, TIME_END)
+      },
+      interval: TIME_MOD_FREQ,
+    }
+
     const strafeLeftCallback = {
       callback: this.strafeTetromino.bind(this, Direction.Left),
       interval: 150,
@@ -89,6 +113,7 @@ export class Tetris {
     }
 
     this.clock.addLogicCallback(mainGameLogicCallback)
+    this.clock.addLogicCallback(changeSpeedCallback)
 
     // keyboard bindings
     this.keyboard.add({
@@ -149,7 +174,7 @@ export class Tetris {
   nextTetromino() {
     this.currentTetrominoPosition = initialTetrominoPosition
     this.currentTetromino = getNextTetromino()
-    this.currentColor = this.colorOn ? getNextRandomColor() : DEFAULT_COLOR
+    this.currentColor = this.isColorOn ? getNextRandomColor() : DEFAULT_COLOR
     this.currentTetrominoRotation = getNextTetrominoRotation(
       this.currentTetromino
     )
@@ -307,7 +332,7 @@ export class Tetris {
   }
 
   switchColor(isColorOn: boolean) {
-    this.colorOn = isColorOn
+    this.isColorOn = isColorOn
     if (isColorOn) {
       this.currentColor = getNextRandomColor()
       this.filledField = this.filledField.map((coords) => ({

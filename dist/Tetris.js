@@ -5,13 +5,18 @@ import { Options } from './Options.js';
 import { getNextTetromino, getNextTetrominoRotation, } from './tetrominoes.js';
 const GRID_WIDTH = 10; // cell count horizontal
 const GRID_HEIGHT = 20; // cell count vertical
+const DEFAULT_COLOR = 'White';
+const RANDOM_FILL_COUNT = 5;
+// game speed settings
+const TIME_START = 300; // starting time to drop one block below
+const TIME_END = 150;
+const TIME_MOD_COEFF = 0.95;
+const TIME_MOD_FREQ = 300000;
 var Direction;
 (function (Direction) {
     Direction["Left"] = "left";
     Direction["Right"] = "right";
 })(Direction || (Direction = {}));
-const DEFAULT_COLOR = 'White';
-const RANDOM_FILL_COUNT = 5;
 const initialTetrominoPosition = { x: 4, y: -1 };
 export class Tetris {
     scoreContainer;
@@ -28,8 +33,9 @@ export class Tetris {
     // options
     pause = false;
     options;
-    colorOn = true;
+    isColorOn = true;
     _difficulty = 0;
+    isSpeedChanging = false;
     isLastMove = false;
     constructor(container) {
         // score system
@@ -51,7 +57,19 @@ export class Tetris {
         // main game logic
         const mainGameLogicCallback = {
             callback: this.game.bind(this),
-            interval: 250,
+            interval: Math.floor(TIME_START / TIME_MOD_COEFF), // to compensate initial call
+        };
+        // speed
+        const changeSpeedCallback = {
+            callback: () => {
+                if (!this.isSpeedChanging) {
+                    mainGameLogicCallback.interval = TIME_START;
+                    return;
+                }
+                const newTime = Math.floor(mainGameLogicCallback.interval * TIME_MOD_COEFF);
+                mainGameLogicCallback.interval = Math.max(newTime, TIME_END);
+            },
+            interval: TIME_MOD_FREQ,
         };
         const strafeLeftCallback = {
             callback: this.strafeTetromino.bind(this, Direction.Left),
@@ -66,6 +84,7 @@ export class Tetris {
             this.options.toggle();
         };
         this.clock.addLogicCallback(mainGameLogicCallback);
+        this.clock.addLogicCallback(changeSpeedCallback);
         // keyboard bindings
         this.keyboard.add({
             code: 'KeyA',
@@ -119,7 +138,7 @@ export class Tetris {
     nextTetromino() {
         this.currentTetrominoPosition = initialTetrominoPosition;
         this.currentTetromino = getNextTetromino();
-        this.currentColor = this.colorOn ? getNextRandomColor() : DEFAULT_COLOR;
+        this.currentColor = this.isColorOn ? getNextRandomColor() : DEFAULT_COLOR;
         this.currentTetrominoRotation = getNextTetrominoRotation(this.currentTetromino);
     }
     strafeTetromino(direction) {
@@ -242,7 +261,7 @@ export class Tetris {
         })));
     }
     switchColor(isColorOn) {
-        this.colorOn = isColorOn;
+        this.isColorOn = isColorOn;
         if (isColorOn) {
             this.currentColor = getNextRandomColor();
             this.filledField = this.filledField.map((coords) => ({

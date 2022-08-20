@@ -3,6 +3,7 @@ export class Options {
     wrapper;
     restartButton;
     colorControlCheckbox;
+    speedControlCheckbox;
     difficultyNumberInput;
     game;
     constructor(game) {
@@ -16,6 +17,10 @@ export class Options {
         this.colorControlCheckbox.addEventListener('change', () => {
             const checked = this.colorControlCheckbox.checked;
             this.game.switchColor(checked);
+        });
+        this.speedControlCheckbox = this.wrapper.querySelector('.speed-control');
+        this.speedControlCheckbox.addEventListener('change', () => {
+            this.game.isSpeedChanging = this.speedControlCheckbox.checked;
         });
         this.difficultyNumberInput =
             this.wrapper.querySelector('.difficulty-number');
