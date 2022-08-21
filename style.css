@@ -37,6 +37,7 @@ body {
 }
 
 .options {
+  box-sizing: border-box;
   background-color: #fff;
   border-radius: 10px;
   padding: 10px;
@@ -51,6 +52,7 @@ body {
 }
 
 .options button {
+  display: block;
   border: 0;
   font-style: inherit;
   font-size: 16px;

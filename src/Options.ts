@@ -7,6 +7,8 @@ export class Options {
   private colorControlCheckbox: HTMLInputElement
   private speedControlCheckbox: HTMLInputElement
   private difficultyNumberInput: HTMLInputElement
+  private saveButton: HTMLButtonElement
+  private loadButton: HTMLButtonElement
 
   private game: Tetris
 
@@ -38,6 +40,20 @@ export class Options {
       const value = Number(this.difficultyNumberInput.value)
 
       this.game.difficulty = value
+    })
+
+    this.saveButton = document.querySelector('.save')!
+    this.saveButton.addEventListener('click', () => {
+      console.log('save')
+
+      this.game.save()
+    })
+
+    this.loadButton = document.querySelector('.load')!
+    this.loadButton.addEventListener('click', () => {
+      console.log('load')
+
+      this.game.load()
     })
   }
 

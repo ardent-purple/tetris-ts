@@ -18,6 +18,7 @@ const NEXT_TETROMINO_POSITION = { x: 2, y: 2 };
 const NEXT_TETROMINO_CELL_SIZE = 12;
 const NEXT_TETROMINO_CELL_GAP = 1;
 const NEXT_TETROMINO_CELLS = { x: 6, y: 5 };
+const SAVE_AND_LOAD_KEY = 'tetris:gameState';
 var Direction;
 (function (Direction) {
     Direction["Left"] = "left";
@@ -218,6 +219,7 @@ export class Tetris {
             case 4:
                 this.score += 1200;
         }
+        this.renderScore();
     }
     pullFullTetromino() {
         if (this.pause) {
@@ -230,7 +232,6 @@ export class Tetris {
     // control options logic
     restart() {
         this.score = 0;
-        this.renderScore();
         this.#cleanField();
         this.#fillField();
         this.generateNextTetromino();
@@ -357,9 +358,41 @@ export class Tetris {
             this.isLastMove = false;
             this.saveTetromino();
             this.destroyFilledRows();
-            this.renderScore();
             this.generateNextTetromino();
         }
+    }
+    save() {
+        const toSave = {
+            currentTetromino: {
+                tetromino: this.currentTetromino,
+                rotation: this.currentTetrominoRotation,
+                position: this.currentTetrominoPosition,
+                color: this.currentColor,
+            },
+            nextTetromino: {
+                tetromino: this.nextTetromino,
+                color: this.nextColor,
+            },
+            filledField: this.filledField,
+            score: this.score,
+        };
+        localStorage.setItem(SAVE_AND_LOAD_KEY, JSON.stringify(toSave));
+    }
+    load() {
+        const loadString = localStorage.getItem(SAVE_AND_LOAD_KEY);
+        if (!loadString) {
+            return;
+        }
+        const toLoad = JSON.parse(loadString);
+        this.filledField = toLoad.filledField;
+        this.currentTetromino = toLoad.currentTetromino.tetromino;
+        this.currentTetrominoRotation = toLoad.currentTetromino.rotation;
+        this.currentTetrominoPosition = toLoad.currentTetromino.position;
+        this.currentColor = toLoad.currentTetromino.color;
+        this.nextTetromino = toLoad.nextTetromino.tetromino;
+        this.nextColor = toLoad.nextTetromino.color;
+        this.score = toLoad.score;
+        this.renderScore();
     }
     render() {
         this.display.render(this.field);
