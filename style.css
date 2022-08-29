@@ -62,3 +62,22 @@ body {
   width: 100%;
   padding: 10px;
 }
+.score {
+  border: 0;
+  width: 100%;
+}
+
+.score thead {
+  background-color: orange;
+}
+
+.score tbody tr:nth-child(2n) {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.score td,
+.score th {
+  border: 0;
+  text-align: center;
+  padding: 4px;
+}

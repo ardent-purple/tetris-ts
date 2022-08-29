@@ -1,5 +1,13 @@
 import { Tetris } from './Tetris.js'
 
+const SCORE_KEY = 'tetris:score'
+const MAX_SCORES = 5
+
+interface ScoreRecord {
+  datetime: Date
+  score: number
+}
+
 export class Options {
   // HTML
   private wrapper: HTMLElement
@@ -9,8 +17,10 @@ export class Options {
   private difficultyNumberInput: HTMLInputElement
   private saveButton: HTMLButtonElement
   private loadButton: HTMLButtonElement
+  private scoreContainer: HTMLElement
 
   private game: Tetris
+  private scores: ScoreRecord[]
 
   constructor(game: Tetris) {
     this.game = game
@@ -55,9 +65,70 @@ export class Options {
 
       this.game.load()
     })
+
+    this.scoreContainer = document.querySelector('.score-container')!
+
+    this.scores = []
+    const toLoad = localStorage.getItem(SCORE_KEY)
+    if (toLoad) {
+      const toLoadArray = JSON.parse(toLoad)
+      for (const scoreRecord of toLoadArray) {
+        this.scores.push({
+          datetime: new Date(scoreRecord.datetime),
+          score: scoreRecord.score,
+        })
+      }
+    }
+    this.#renderScore()
   }
 
   toggle() {
     this.wrapper.classList.toggle('show')
   }
+
+  addScore(newScore: number) {
+    const newScoreRecord = {
+      datetime: new Date(),
+      score: newScore,
+    }
+    this.scores.push(newScoreRecord)
+    this.scores.sort(({ score: score1 }, { score: score2 }) => score2 - score1)
+
+    if (this.scores.length > MAX_SCORES) {
+      const minScore = Math.min(...this.scores.map(({ score }) => score))
+      const minIndex = this.scores.findIndex(({ score }) => minScore === score)
+      this.scores.splice(minIndex, 1)
+    }
+    console.log(this.scores)
+
+    this.#saveScore()
+    this.#renderScore()
+  }
+
+  #saveScore() {
+    localStorage.setItem(SCORE_KEY, JSON.stringify(this.scores))
+  }
+
+  #renderScore() {
+    this.scoreContainer.innerHTML = ''
+
+    for (const { datetime, score } of this.scores) {
+      const html = `<tr><td>${formatDatetime(
+        datetime
+      )}</td><td>${score}</td></tr>`
+      this.scoreContainer.insertAdjacentHTML('beforeend', html)
+    }
+  }
+}
+
+function formatDatetime(datetime: Date) {
+  return `${datetime.getFullYear()}-${prefix(datetime.getMonth() + 1)}-${prefix(
+    datetime.getDate()
+  )} ${prefix(datetime.getHours())}:${prefix(datetime.getMinutes())}:${prefix(
+    datetime.getSeconds()
+  )}`
+}
+
+function prefix(num: number) {
+  return `0${num}`.slice(-2)
 }

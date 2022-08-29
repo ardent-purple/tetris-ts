@@ -66,8 +66,10 @@ export class Tetris {
   private isColorOn: boolean = true
   private _difficulty: number = 0
   public isSpeedChanging: boolean = false
+  private gameOver: boolean = false
 
   private isLastMove: boolean = false
+  private isFirstMove: boolean = true
 
   constructor(container: HTMLElement) {
     // score system
@@ -127,10 +129,6 @@ export class Tetris {
       callback: this.strafeTetromino.bind(this, Direction.Right),
       interval: 150,
     }
-    const togglePauseCallback = () => {
-      this.pause = !this.pause
-      this.options.toggle()
-    }
 
     this.clock.addLogicCallback(mainGameLogicCallback)
     this.clock.addLogicCallback(changeSpeedCallback)
@@ -166,10 +164,9 @@ export class Tetris {
     })
     this.keyboard.add({
       code: 'Space',
-      keydownCallback: togglePauseCallback,
+      keydownCallback: this.togglePause.bind(this),
     })
 
-    this.restart()
     this.clock.start()
   }
 
@@ -286,13 +283,17 @@ export class Tetris {
       case 4:
         this.score += 1200
     }
-    this.renderScore()
+    if (destroyedRows !== 0) {
+      this.renderScore()
+    }
   }
 
   pullFullTetromino() {
     if (this.pause) {
       return
     }
+
+    this.isFirstMove = false
 
     while (this.checkCanPullTetromino()) {
       this.pullTetromino()
@@ -303,8 +304,13 @@ export class Tetris {
 
   restart() {
     this.score = 0
+    this.gameOver = false
+    this.pause = false
+    this.isFirstMove = true
+    this.options.toggle()
     this.#cleanField()
     this.#fillField()
+    this.renderScore()
     this.generateNextTetromino()
   }
 
@@ -451,10 +457,13 @@ export class Tetris {
     )
   }
 
+  checkGameOver() {}
+
   game() {
-    if (this.pause) {
+    if (this.pause || this.gameOver) {
       return
     }
+
     this.field = [
       ...this.filledField,
       ...this.currentTetrominoAbsoluteCoords.map((coords) => ({
@@ -463,12 +472,16 @@ export class Tetris {
       })),
     ]
 
-    // test
-    // maybe separate pull logic?
     if (this.checkCanPullTetromino()) {
       this.isLastMove = false
+      this.isFirstMove = false
       this.pullTetromino()
       return
+    } else if (this.isFirstMove) {
+      this.gameOver = true
+      this.pause = true
+      this.options.addScore(this.score)
+      this.options.toggle()
     }
 
     if (!this.isLastMove) {
@@ -477,6 +490,7 @@ export class Tetris {
       this.isLastMove = false
       this.saveTetromino()
       this.destroyFilledRows()
+      this.isFirstMove = true
       this.generateNextTetromino()
     }
   }
@@ -528,6 +542,14 @@ export class Tetris {
         color: this.nextColor,
       }))
     )
+  }
+
+  togglePause() {
+    if (this.gameOver) {
+      return
+    }
+    this.pause = !this.pause
+    this.options.toggle()
   }
 
   renderScore() {
