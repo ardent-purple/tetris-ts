@@ -80,6 +80,7 @@ export class Tetris {
       cellWidth: GRID_WIDTH,
       cellHeight: GRID_HEIGHT,
       cellSize: 30,
+      fitContainer: true,
     })
     this.nextBlockDisplay = new Display(
       document.querySelector('.next-tetromino')!,

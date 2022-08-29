@@ -4,6 +4,7 @@ interface DisplayOptions {
   cellSize: number
   cellGap: number
   emptyColor: CanvasFillStrokeStyles['fillStyle']
+  fitContainer: boolean
 }
 
 const defaultOptions: DisplayOptions = {
@@ -12,6 +13,7 @@ const defaultOptions: DisplayOptions = {
   cellSize: 15,
   cellGap: 2,
   emptyColor: 'black',
+  fitContainer: false,
 }
 
 const colors = {
@@ -42,6 +44,7 @@ export interface RenderPoint {
 }
 
 export class Display {
+  private container: HTMLElement
   private canvas: HTMLCanvasElement
   private ctx2d: CanvasRenderingContext2D
   private options: DisplayOptions
@@ -52,15 +55,12 @@ export class Display {
       ...options,
     }
 
-    this.canvas = document.createElement('canvas')
-    container.append(this.canvas)
+    this.container = container
 
-    this.canvas.width =
-      this.options.cellWidth * this.options.cellSize +
-      (this.options.cellWidth + 1) * this.options.cellGap
-    this.canvas.height =
-      this.options.cellHeight * this.options.cellSize +
-      (this.options.cellHeight + 1) * this.options.cellGap
+    this.canvas = document.createElement('canvas')
+    this.container.append(this.canvas)
+
+    this.calcDimensions()
 
     this.ctx2d = this.canvas.getContext('2d')!
   }
@@ -84,5 +84,30 @@ export class Display {
   clear() {
     this.ctx2d.fillStyle = this.options.emptyColor
     this.ctx2d.fillRect(0, 0, this.canvas.width, this.canvas.height)
+  }
+
+  calcDimensions() {
+    if (this.options.fitContainer) {
+      const cellGapRatio = this.options.cellGap / this.options.cellSize
+
+      const { width, height } = this.container.getBoundingClientRect()
+
+      const minCellSize = Math.min(
+        width /
+          (this.options.cellWidth +
+            cellGapRatio * (this.options.cellWidth - 1)),
+        height /
+          (this.options.cellHeight +
+            cellGapRatio * (this.options.cellHeight - 1))
+      )
+      this.options.cellSize = minCellSize
+      this.options.cellGap = cellGapRatio * minCellSize
+    }
+    this.canvas.width =
+      this.options.cellWidth * this.options.cellSize +
+      (this.options.cellWidth + 1) * this.options.cellGap
+    this.canvas.height =
+      this.options.cellHeight * this.options.cellSize +
+      (this.options.cellHeight + 1) * this.options.cellGap
   }
 }
