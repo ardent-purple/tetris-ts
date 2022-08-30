@@ -2,7 +2,9 @@ const SCORE_KEY = 'tetris:score';
 const MAX_SCORES = 5;
 export class Options {
     // HTML
+    optionsOpenButton;
     wrapper;
+    resumeButton;
     restartButton;
     colorControlCheckbox;
     speedControlCheckbox;
@@ -15,6 +17,16 @@ export class Options {
     constructor(game) {
         this.game = game;
         this.wrapper = document.querySelector('.options-wrapper');
+        this.optionsOpenButton = document.querySelector('.options-open');
+        this.optionsOpenButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.game.togglePause();
+        });
+        this.resumeButton = document.querySelector('.resume');
+        this.resumeButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.game.togglePause();
+        });
         this.restartButton = this.wrapper.querySelector('.restart');
         this.restartButton.addEventListener('click', () => {
             this.game.restart();

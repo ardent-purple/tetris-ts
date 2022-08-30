@@ -10,7 +10,9 @@ interface ScoreRecord {
 
 export class Options {
   // HTML
+  private optionsOpenButton: HTMLButtonElement
   private wrapper: HTMLElement
+  private resumeButton: HTMLElement
   private restartButton: HTMLElement
   private colorControlCheckbox: HTMLInputElement
   private speedControlCheckbox: HTMLInputElement
@@ -26,6 +28,18 @@ export class Options {
     this.game = game
 
     this.wrapper = document.querySelector('.options-wrapper')!
+
+    this.optionsOpenButton = document.querySelector('.options-open')!
+    this.optionsOpenButton.addEventListener('click', (e) => {
+      e.stopPropagation()
+      this.game.togglePause()
+    })
+
+    this.resumeButton = document.querySelector('.resume')!
+    this.resumeButton.addEventListener('click', (e) => {
+      e.stopPropagation()
+      this.game.togglePause()
+    })
 
     this.restartButton = this.wrapper.querySelector('.restart')!
     this.restartButton.addEventListener('click', () => {
