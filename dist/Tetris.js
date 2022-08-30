@@ -4,6 +4,7 @@ import { Keyboard } from './Keyboard.js';
 import { Options } from './Options.js';
 import { getNextTetromino, getNextTetrominoRotation, } from './tetrominoes.js';
 import { Swipes } from './Swipes.js';
+import { Tap } from './Tap.js';
 const GRID_WIDTH = 10; // cell count horizontal
 const GRID_HEIGHT = 20; // cell count vertical
 const DEFAULT_COLOR = 'White';
@@ -32,6 +33,7 @@ export class Tetris {
     keyboard;
     clock;
     swipes;
+    tap;
     field; // current playing field, one to render
     filledField; // field with filled cells
     currentTetromino = getNextTetromino();
@@ -69,6 +71,7 @@ export class Tetris {
         this.keyboard = new Keyboard();
         this.clock = new Clock();
         this.swipes = new Swipes();
+        this.tap = new Tap();
         this.field = [];
         this.filledField = [];
         this.options = new Options(this);
@@ -136,6 +139,9 @@ export class Tetris {
         // swipe control
         this.swipes.addSwipeLeftCallback(this.strafeTetromino.bind(this, Direction.Left));
         this.swipes.addSwipeRightCallback(this.strafeTetromino.bind(this, Direction.Right));
+        // tap control
+        this.tap.addTopTapCallback(this.rotateTetromino.bind(this));
+        this.tap.addBottomTapCallback(this.pullFullTetromino.bind(this));
         this.clock.start();
     }
     get currentTetrominoCoords() {

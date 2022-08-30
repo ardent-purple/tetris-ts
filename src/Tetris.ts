@@ -8,6 +8,7 @@ import {
   Tetromino,
 } from './tetrominoes.js'
 import { Swipes } from './Swipes.js'
+import { Tap } from './Tap.js'
 
 const GRID_WIDTH = 10 // cell count horizontal
 const GRID_HEIGHT = 20 // cell count vertical
@@ -45,6 +46,7 @@ export class Tetris {
   private keyboard: Keyboard
   private clock: Clock
   private swipes: Swipes
+  private tap: Tap
 
   private field: RenderPoint[] // current playing field, one to render
   private filledField: RenderPoint[] // field with filled cells
@@ -95,6 +97,7 @@ export class Tetris {
     this.keyboard = new Keyboard()
     this.clock = new Clock()
     this.swipes = new Swipes()
+    this.tap = new Tap()
 
     this.field = []
     this.filledField = []
@@ -178,6 +181,10 @@ export class Tetris {
     this.swipes.addSwipeRightCallback(
       this.strafeTetromino.bind(this, Direction.Right)
     )
+
+    // tap control
+    this.tap.addTopTapCallback(this.rotateTetromino.bind(this))
+    this.tap.addBottomTapCallback(this.pullFullTetromino.bind(this))
 
     this.clock.start()
   }
