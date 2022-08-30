@@ -3,6 +3,7 @@ import { Display, getNextRandomColor } from './Display.js';
 import { Keyboard } from './Keyboard.js';
 import { Options } from './Options.js';
 import { getNextTetromino, getNextTetrominoRotation, } from './tetrominoes.js';
+import { Swipes } from './Swipes.js';
 const GRID_WIDTH = 10; // cell count horizontal
 const GRID_HEIGHT = 20; // cell count vertical
 const DEFAULT_COLOR = 'White';
@@ -30,6 +31,7 @@ export class Tetris {
     nextBlockDisplay;
     keyboard;
     clock;
+    swipes;
     field; // current playing field, one to render
     filledField; // field with filled cells
     currentTetromino = getNextTetromino();
@@ -66,6 +68,7 @@ export class Tetris {
         });
         this.keyboard = new Keyboard();
         this.clock = new Clock();
+        this.swipes = new Swipes();
         this.field = [];
         this.filledField = [];
         this.options = new Options(this);
@@ -87,11 +90,11 @@ export class Tetris {
             },
             interval: TIME_MOD_FREQ,
         };
-        const strafeLeftCallback = {
+        const strafeLeftLogicCallback = {
             callback: this.strafeTetromino.bind(this, Direction.Left),
             interval: 150,
         };
-        const strafeRightCallback = {
+        const strafeRightLogicCallback = {
             callback: this.strafeTetromino.bind(this, Direction.Right),
             interval: 150,
         };
@@ -102,20 +105,20 @@ export class Tetris {
             code: 'KeyA',
             keydownCallback: () => {
                 this.strafeTetromino.bind(this, Direction.Left);
-                this.clock.addLogicCallback(strafeLeftCallback);
+                this.clock.addLogicCallback(strafeLeftLogicCallback);
             },
             keyupCallback: () => {
-                this.clock.removeLogicCallback(strafeLeftCallback);
+                this.clock.removeLogicCallback(strafeLeftLogicCallback);
             },
         });
         this.keyboard.add({
             code: 'KeyD',
             keydownCallback: () => {
                 this.strafeTetromino.bind(this, Direction.Right);
-                this.clock.addLogicCallback(strafeRightCallback);
+                this.clock.addLogicCallback(strafeRightLogicCallback);
             },
             keyupCallback: () => {
-                this.clock.removeLogicCallback(strafeRightCallback);
+                this.clock.removeLogicCallback(strafeRightLogicCallback);
             },
         });
         this.keyboard.add({
@@ -130,6 +133,9 @@ export class Tetris {
             code: 'Space',
             keydownCallback: this.togglePause.bind(this),
         });
+        // swipe control
+        this.swipes.addSwipeLeftCallback(this.strafeTetromino.bind(this, Direction.Left));
+        this.swipes.addSwipeRightCallback(this.strafeTetromino.bind(this, Direction.Right));
         this.clock.start();
     }
     get currentTetrominoCoords() {
